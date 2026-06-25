@@ -38,13 +38,6 @@ prd-king/
 ├── templates/
 │   ├── commercial-prd-template.md        ← VERSION A · 商用交付版（甲方/合同/开发排期）
 │   └── ai-prototype-prd-template.md      ← VERSION B · AI原型生成版（直接出HTML原型）
-├── prototype/
-│   ├── WORKFLOW.md                       ← PRD→原型工作流（8个Phase）
-│   ├── references/
-│   │   ├── design-system-tokens.md        ← 设计体系Token对照
-│   │   └── ant-design-5-tokens.md         ← Ant Design 5.x 完整Token
-│   └── scripts/
-│       └── verify-prototype.py            ← 自动化验收脚本（≥90%通过）
 ├── references/
 │   └── design-system-options.md          ← 8大设计体系Token完整参考
 ├── README.md
@@ -53,21 +46,21 @@ prd-king/
 └── CHANGELOG.md
 ```
 
-## 🚀 快速开始
+## 🔗 配套项目
 
-### 如果你有PRD，想要原型
+| 项目 | 链接 | 功能 |
+|------|------|------|
+| **prd-king**（本仓库） | https://github.com/kangedy/prd-king | **PRD写作标准** — 10章模板+设计体系 |
+| **prototype-king** | https://github.com/kangedy/prototype-king | **PRD→原型工作流** — 8 Phase + 验收脚本 |
 
-```bash
-# 1. 读取PRD → 打开 prototype/WORKFLOW.md 按8 Phase执行
-# 2. Phase 0: 确认PRD设计体系 → 复制对应Token
-# 3. Phase 3-5: 生成页面 + Mock数据
-# 4. Phase 6: 运行验收
-cd prototype/ && python3 scripts/verify-prototype.py
+**使用流程：**
+```
+prd-king 写PRD → prototype-king 转原型 → 交付验收
 ```
 
-## 🚀 快速开始
+---
 
-### 如果你是产品经理（不需要Hermes）
+## 🚀 快速开始
 
 直接打开模板开始写：
 

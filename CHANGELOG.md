@@ -2,11 +2,11 @@
 
 ## v1.1.0 (2026-06-25)
 
-- 🏗️ **新增原型工作流** — `prototype/WORKFLOW.md`，8个Phase从PRD到可交互HTML原型
-- 🔧 新增自动化验收脚本 `prototype/scripts/verify-prototype.py`（≥90%门禁）
-- 🎨 新增设计体系Token参考 `prototype/references/`（含Ant Design 5.x完整Token + 6大体系对照）
-- 📖 新增OpenClaw/Claude Code/Codex使用指南
-- 🐛 修复：README 目录结构更新
+- 🔀 **项目拆分为两个独立仓库：**
+  - `prd-king` — PRD写作标准（本仓库）
+  - `prototype-king` — PRD→原型工作流（https://github.com/kangedy/prototype-king）
+- 🗑️ 移除本仓库中的 `prototype/` 目录（已迁移至 prototype-king）
+- 📖 README 更新为配套项目引用
 
 ## v1.0.0 (2026-06-24)
 
