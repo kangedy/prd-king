@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.1.0 (2026-06-25)
+
+- 🏗️ **新增原型工作流** — `prototype/WORKFLOW.md`，8个Phase从PRD到可交互HTML原型
+- 🔧 新增自动化验收脚本 `prototype/scripts/verify-prototype.py`（≥90%门禁）
+- 🎨 新增设计体系Token参考 `prototype/references/`（含Ant Design 5.x完整Token + 6大体系对照）
+- 📖 新增OpenClaw/Claude Code/Codex使用指南
+- 🐛 修复：README 目录结构更新
+
 ## v1.0.0 (2026-06-24)
 
 - 🎉 首次发布
