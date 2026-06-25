@@ -71,6 +71,59 @@ load skill_view(name='prd')
 → 自动走 Phase 0c 结构化访谈 → 输出10章PRD
 ```
 
+### 如果你是 OpenClaw 用户
+
+OpenClaw 支持 agentskills.io 标准的 skill 文件，可直接使用 `SKILL.md`：
+
+```bash
+# 将技能文件放入 OpenClaw skills 目录
+cp SKILL.md ~/.openclaw/skills/prd-skill.md
+
+# 对话中唤起
+在对话中直接说：按prd标准写一份产品需求文档
+→ OpenClaw 自动加载 skill 并输出10章PRD
+```
+
+### 如果你是 Claude Code 用户
+
+Claude Code 通过 `CLAUDE.md` 加载项目上下文。建议将PRD模板作为参考规则：
+
+```markdown
+# 在项目根目录创建或追加到 CLAUDE.md
+
+## PRD 写作标准
+本项目使用原型导向PRD标准（prd-king）。
+参考模板文件：
+- 商用交付版：path/to/commercial-prd-template.md
+- AI原型生成版：path/to/ai-prototype-prd-template.md
+
+要求：
+1. 输出必须遵循10章结构（Ch1-Ch10）
+2. 设计规范默认 Ant Design 5.x（Token: #1677FF主色）
+3. 功能点细化到按钮/操作级，枚举值全部列全
+4. 数据模型逐字段含类型/必填/选项值/校验规则
+5. Mock数据需包含正常/空/极限三组
+6. 输出前过一遍质量自检表
+```
+
+```bash
+# 对话中使用
+→ 帮我写份PRD，用商用交付版模板，参照 templates/ 目录
+```
+
+### 如果你是 Codex CLI 用户
+
+Codex CLI 可读取本地 Markdown 文件作为参考。将模板文件放入项目内直接引用：
+
+```bash
+# 在项目目录放模板
+cp templates/commercial-prd-template.md ./docs/prd-template.md
+
+# 对话中使用
+→ 读取 docs/prd-template.md 模板，按10章结构为[项目名]写一份PRD
+→ 设计体系选 Ant Design 5.x，补充Mock数据和边界条件
+```
+
 ---
 
 ## 📐 10章结构速览
