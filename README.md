@@ -33,20 +33,37 @@
 ## 📂 目录结构
 
 ```
-prd-skill/
+prd-king/
 ├── SKILL.md                              ← Hermes Agent 技能主文件（10章标准）
 ├── templates/
 │   ├── commercial-prd-template.md        ← VERSION A · 商用交付版（甲方/合同/开发排期）
 │   └── ai-prototype-prd-template.md      ← VERSION B · AI原型生成版（直接出HTML原型）
+├── prototype/
+│   ├── WORKFLOW.md                       ← PRD→原型工作流（8个Phase）
+│   ├── references/
+│   │   ├── design-system-tokens.md        ← 设计体系Token对照
+│   │   └── ant-design-5-tokens.md         ← Ant Design 5.x 完整Token
+│   └── scripts/
+│       └── verify-prototype.py            ← 自动化验收脚本（≥90%通过）
 ├── references/
 │   └── design-system-options.md          ← 8大设计体系Token完整参考
-├── README.md                             ← 本文件
+├── README.md
 ├── LICENSE                               ← MIT
-├── CONTRIBUTING.md                       ← 贡献指南
-└── CHANGELOG.md                          ← 版本记录
+├── CONTRIBUTING.md
+└── CHANGELOG.md
 ```
 
----
+## 🚀 快速开始
+
+### 如果你有PRD，想要原型
+
+```bash
+# 1. 读取PRD → 打开 prototype/WORKFLOW.md 按8 Phase执行
+# 2. Phase 0: 确认PRD设计体系 → 复制对应Token
+# 3. Phase 3-5: 生成页面 + Mock数据
+# 4. Phase 6: 运行验收
+cd prototype/ && python3 scripts/verify-prototype.py
+```
 
 ## 🚀 快速开始
 
