@@ -35,14 +35,18 @@
 ```
 prd-king/
 ├── SKILL.md                              ← Hermes Agent 技能主文件（10章标准）
+├── scripts/
+│   └── validate-prd.py                   ← PRD结构校验脚本（检查10章完整性）
 ├── templates/
 │   ├── commercial-prd-template.md        ← VERSION A · 商用交付版（甲方/合同/开发排期）
 │   └── ai-prototype-prd-template.md      ← VERSION B · AI原型生成版（直接出HTML原型）
-├── references/
+├── references/                           ← 12个参考文件（反向工程/增量修订/竞品分析等）
 │   └── design-system-options.md          ← 8大设计体系Token完整参考
+├── posts/                                ← 推广帖草稿
 ├── README.md
 ├── LICENSE                               ← MIT
 ├── CONTRIBUTING.md
+├── PROMOTION.md
 └── CHANGELOG.md
 ```
 
