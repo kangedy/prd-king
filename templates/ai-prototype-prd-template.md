@@ -184,18 +184,13 @@ Order状态机(枚举string非数字):
 
 ## Ch5 · Page Inventory / 页面清单 [🔴P0]
 
-| data-page | 标题 | 模块 | 布局 | 依赖实体 |
-|-----------|------|------|------|---------|
-| dashboard | 数据概览 | 首页 | cards | OrderStat |
-| order-list | 订单列表 | 交易 | table+search | Order |
-| order-detail | 订单详情 | 交易 | detail | Order/OrderItem |
-| modal-review | 审核弹窗 | 交易 | modal+form | Review |
-| order-refund | 退款弹窗 | 交易 | modal+form | Refund |
-| product-list | 商品列表 | 商品 | table+search | Product |
-| product-form | 商品上架 | 商品 | form+steps | Product/Category |
-| cart-page | 购物车 | 交易 | cards+calc | Cart |
-| user-list | 用户管理 | 系统 | table+search | User |
-| role-list | 角色管理 | 系统 | table+search | Role |
+| data-page | 标题 | 模块 | 布局 | 依赖实体 | 弹窗清单 |
+|-----------|------|------|------|---------|---------|
+| dashboard | 数据概览 | 首页 | cards | OrderStat | — |
+| order-list | 订单列表 | 交易 | table+search | Order | add(含8字段:订单号/客户/手机号/金额/支付方式/状态/备注/创建时间)+edit(同add)+detail(只读) |
+| order-detail | 订单详情 | 交易 | detail | Order/OrderItem | review(审核弹窗:审核结果radio+驳回原因textarea) |
+| modal-review | 审核弹窗 | 交易 | modal+form | Review | — |
+| product-list | 商品列表 | 商品 | table+search | Product | add(含6字段:名称/分类/价格/库存/状态/图片)+edit(同add)+delete(确认) |
 
 ---
 
@@ -252,11 +247,16 @@ Order状态机(枚举string非数字):
 
 ### 6.3 弹窗清单
 
-| modal-id | 触发 | 字段 | 按钮 |
-|----------|------|------|------|
-| modal-review | 审核按钮 | 审核结果(通过/驳回radio)+备注(textarea) | 提交/取消 |
-| modal-refund | 申请退款 | 退款原因(dropdown)+金额(number)+凭证(upload) | 提交/取消 |
-| modal-delete | 删除按钮 | 确认文案(text)+输入密码(password) | 确认删除/取消 |
+**每个弹窗的字段直接引用Ch7实体中的字段定义，去掉系统自动生成字段（id/created_at）。**
+**弹窗字段命名规则：** `{实体字段名}(控件类型, 必填/选填, 选项值/范围)`
+
+| modal-id | 触发动作 | 字段来源 | 字段清单 | 按钮 |
+|----------|---------|---------|---------|------|
+| modal-review | order-list审核按钮 | Review实体 | action(radio, 必填, approve/reject) + reason(textarea, 驳回时必填) | 提交/取消 |
+| modal-refund | order-detail退款按钮 | Refund | reason(select, 必填, 选项:商品问题/服务质量/其他) + amount(number, 必填, ≥0.01) + description(textarea, 选填) | 提交/取消 |
+| modal-delete | product-list删除按钮 | — | 无字段，仅确认文案 | 确认删除/取消 |
+
+**验证规则：** 每个弹窗字段必须在Ch7实体字段表中存在对应定义。Ch7中没有的字段不能出现在弹窗中。
 
 ---
 
@@ -266,8 +266,8 @@ Order状态机(枚举string非数字):
 
 #### Order (订单)
 
-| 字段 | 类型 | 必填 | 选项/范围 | 控件 | 校验 |
-|------|------|------|----------|------|------|
+| 字段 | 类型 | 必填 | 选项/范围（中文，用户可见） | 控件 | 校验 |
+|------|------|------|---------------------------|------|------|
 | order_no | string | Y | — | Input | 格式:ORD+14位时间+6位随机数 |
 | customer_name | string | Y | ≤32字 | Input | — |
 | customer_phone | string | Y | 11位 | Input | regex:/^1[3-9]\d{9}$/ |

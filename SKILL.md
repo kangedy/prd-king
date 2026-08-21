@@ -12,6 +12,12 @@ license: MIT
 
 **原型不是「照着PRD画页面」，而是「把PRD每条需求翻译成可视化的、可交互的、可评审的产品实物」。**
 
+> 🌐 本技能已开源至 GitHub：https://github.com/kangedy/prd-king
+> 包含：SKILL.md（Hermes技能）、templates/（商用版+AI原型版双模板）、references/（设计体系参考）
+> 
+> 🔧 配套原型工作流（独立仓库）：https://github.com/kangedy/prototype-king
+> **使用链路：prd-king 写PRD → prototype-king 转原型 → verify-prototype.py 验收**
+
 ## Default Design Specification: Ant Design
 
 PRD默认采用 **Ant Design 5.x** 作为设计规范。Token体系直接映射CSS变量，组件直接对应HTML结构，是唯一能当代码规范用的设计体系。
@@ -28,11 +34,9 @@ PRD默认采用 **Ant Design 5.x** 作为设计规范。Token体系直接映射C
 
 ### 国产专业设计体系可选方案（6+2）
 
-当甲方有指定设计体系或项目类型不同时，从以下6大国产体系 + 2外部体系中选择。详细Token/组件数/优缺点见 `references/design-system-options.md`。
+### 国产专业设计体系可选方案（6+2）
 
-| 选 | 体系 | 厂商 | 主色 | 框架 | 适用场景 |
-|----|------|------|------|------|---------|
-| ⭐ | **Ant Design 5.x** | 阿里 | #1677FF | React | B端/通用（默认） |
+当甲方有指定设计体系或项目类型不同时，从以下6大国产体系 + 2外部体系中选择。详细Token/组件数/优缺点见 `references/design-system-options.md`。
 | ② | **Element Plus** | 饿了么 | #409EFF | Vue 3 | Vue3 B端后台 |
 | ③ | **TDesign** | 腾讯 | #0052D9 | 全端覆盖 | Web+小程序全端统一 |
 | ④ | **Arco Design** | 字节 | #165DFF | React/Vue3 | 现代年轻化B端 |
@@ -111,12 +115,16 @@ Only ask questions AFTER exhausting available context. The user's expectation is
         → C.内部开发排期      → 用VERSION A精简版
 ```
 
-**组C · 范围（影响Ch3-7）— 4问**
+**组C · 范围（影响Ch3-7）— 5问**
 ```
 [ ] ⑧ 关键异常场景：审核驳回/支付失败/退款等需处理的？
 [ ] ⑨ 核心操作：每页最重要的3-5个操作（如订单列表：搜索/审核/导出）
 [ ] ⑩ 时间线：首期截止日期？分几期交付？
 [ ] ⑪ 竞品参考：是否有竞品可以发链接？
+[ ] ⑫ 运营指标需求（可运营性，影响Ch11）：上线后运营要看哪些数据？
+        看板/报表/统计口径——如订单量趋势/转化漏斗/区域分布/客服工单量。
+        无明确需求时默认：按核心业务流程每个环节配1-2个核心指标 + 总览看板页。
+        背景：需求开发流程v1.3铁律——设计阶段必须考虑"可统计/可跟踪/可分析"，无运营看板方案不通过。
 ```
 
 #### 问卷执行示例
@@ -333,27 +341,48 @@ Every PRD section has a **priority level** that determines what the prototype ge
 
 **作用：** 决定页面之间的跳转关系。没有它，单页正确但流程走不通。
 
-每个流程标注【从XX页 → 弹窗XX → 到XX页】：
+每个流程使用 Mermaid 流程图标注页面跳转、分支条件、异常路径：
 
+```mermaid
+flowchart LR
+    A[商品详情页] --> B[选择规格]
+    B --> C[加入购物车]
+    C --> D[确认订单页]
+    D --> E[支付页]
+    E --> F[支付成功页]
+    E --> G[支付失败页]
+    G --> D
 ```
-下单流程（P0核心流程）：
-  商品详情页 → 选择规格 → 加入购物车
-  → 确认订单页（收货地址+优惠券+备注）
-  → 订单详情页（状态：待支付）
-  → 支付页（微信/支付宝）
-  → 支付成功页（倒计时3秒跳回订单详情）
 
-退款流程（P0核心流程）：
-  订单详情页 → 点击"申请退款"
-  → 退款弹窗（选择原因+上传凭证+提交）
-  → 列表刷新（状态：退款中）
-  → 商家审核弹窗（同意/拒绝+备注）
-  → 退款到账（原路返回，状态：已退款）
+```mermaid
+flowchart LR
+    A[订单详情页] -->|申请退款| B[退款弹窗]
+    B --> C{商家审核}
+    C -->|同意| D[退款原路返回]
+    C -->|拒绝+备注| E[驳回]
+    D --> F[状态：已退款]
+    E --> A
+```
 
-审核流程（P1辅助流程）：
-  订单列表勾选 → 点击"批量审核"
-  → 审核弹窗（填写意见+提交）
-  → 列表刷新（状态变更为「已审核」）
+```mermaid
+flowchart LR
+    A[订单列表] -->|勾选+批量审核| B[审核弹窗]
+    B -->|填写意见+提交| C[列表刷新]
+    C --> D[状态：已审核]
+```
+
+**状态变更使用状态机图表达：**
+
+```mermaid
+stateDiagram-v2
+    [*] --> 待支付
+    待支付 --> 已支付: 付款成功
+    待支付 --> 已取消: 用户取消
+    已支付 --> 已审核: 商家审核通过
+    已支付 --> 已驳回: 商家审核驳回
+    已审核 --> 已发货: 仓库出库
+    已发货 --> 已签收: 客户确认
+    已签收 --> [*]
 ```
 
 **验收标准：**
@@ -399,20 +428,31 @@ Every PRD section has a **priority level** that determines what the prototype ge
 
 **作用：** 每个页面条目 = 原型生成的一个HTML文件/模块。遗漏 = 原型缺页。
 
+**每页必须回答：** 用户在这个页面能做什么操作？每个操作对应什么弹窗/表单？
+**弹窗命名规则：** `{page}-add` / `{page}-edit` / `{page}-detail` / `{page}-{action}`
+
 ```
 页面清单：
-| data-page | 页面标题 | 所属模块 | 布局类型 | 依赖数据对象 |
-|-----------|---------|---------|---------|-------------|
-| dashboad | 数据概览 | 首页 | 看板 | 订单统计/销售排行 |
-| order-list | 订单列表 | 交易管理 | 表格+筛选 | Order |
-| order-detail | 订单详情 | 交易管理 | 详情展示 | Order/OrderItem |
-| order-review | 审核弹窗 | 交易管理 | Modal表单 | Review |
+| data-page | 页面标题 | 所属模块 | 布局类型 | 依赖数据对象 | 弹窗清单 |
+|-----------|---------|---------|---------|-------------|---------|
+| dashboad | 数据概览 | 首页 | 看板 | 订单统计/销售排行 | — |
+| order-list | 订单列表 | 交易管理 | 表格+筛选 | Order | add(含8字段:订单号/客户/手机号/金额/支付方式/状态/备注/创建时间)+edit(同add预填)+detail(只读) |
+| order-detail | 订单详情 | 交易管理 | 详情展示 | Order/OrderItem | review(审核弹窗:审核结果radio+驳回原因textarea) |
+| order-review | 审核弹窗 | 交易管理 | Modal表单 | Review | — |
+```
+
+**弹窗字段定义规范：**
+```
+add(含6字段:任务名称/执行策略cron/优先级/状态/通知方式/备注)
+edit(同add预填)  
+detail(只读展示+操作日志)
 ```
 
 **约束：**
 - 每个页面必须有唯一 data-page 标识
 - 布局类型标注（表格/详情/看板/表单/Modal等）
 - 依赖数据对象标注（对应Chapter 7的实体名称）
+- 有add/edit操作的页面必须在「弹窗清单」列标注字段数和来源实体
 
 ---
 
@@ -471,6 +511,14 @@ Every PRD section has a **priority level** that determines what the prototype ge
 
 **注意事项：**
 - 每个实体独立表格，一个实体一个表
+- **枚举字段的选项值必须用中文（用户可见），且直接映射到原型的下拉菜单选项**。示例：
+  ```
+  | status | enum | 是 | 启用/停用 | Select | 状态颜色见状态机 |
+  | level | enum | 是 | 普通/银卡/金卡/钻石 | Select | — |
+  | type | enum | 是 | 满减/折扣/现金 | Select | — |
+  ```
+  注意：Mock数据和ENTITY_COLUMNS都使用中文值，所以选项值必须用中文，不用英文代码。
+  ⚠️ **不同实体的同名字段（如status）选项值不同，必须按业务场景分别定义。禁止用replace_all统一替换所有status的选项值。** 例如：客户状态是"准客户/正式客户/活跃/休眠/注销"，会员状态是"正常/冻结/注销"，商品状态是"草稿/已上架/已下架"。
 - 选项值枚举必须**列全部选项**，不可写「见上文」
 - 控件类型标准化（Ant Design：Input/Select/DatePicker/InputNumber等）
 - 格式校验规则必须写明（正则/长度/范围/进制）
@@ -544,6 +592,37 @@ Every PRD section has a **priority level** that determines what the prototype ge
 - G7 JS语法正确：node --check 无语法错误
 - G8 按钮无遗漏：每个<button>有 onclick/data-action/type=submit
 ```
+
+---
+
+### Chapter 11 · 运营指标与看板需求 (P1 · 强烈建议 · 可运营性铁律)
+
+**作用：** 对应需求开发流程 v1.3 阶段0「运营指标需求清单」+ 阶段2「可运营性设计」——确保上线后运营可统计、可跟踪、可分析。功能上线但运营"两眼一抹黑"是设计缺陷。
+
+```markdown
+### 11.1 核心指标清单
+| 指标 | 口径定义（勿模糊） | 数据来源 | 展示频率 |
+|------|------------------|---------|---------|
+| 订单量 | 当日成功支付订单数 | 订单表 | 日 |
+| 转化率 | 咨询→成交 | 咨询+订单表 | 日 |
+| ... | ... | ... | ... |
+
+### 11.2 看板页面规划（Ch5 页面清单中补充）
+| 看板页 | 指标卡片 | 图表（类型×维度） | 下钻 |
+|-------|---------|------------------|------|
+| 运营总览 | 订单量/GMV/用户数 | 折线图×时间趋势 | 点击进入明细 |
+
+### 11.3 指标口径规则
+- 每个指标必须定义：统计周期、统计对象（全部/去重）、时区、单位
+- 金额类指标注明币种与精度
+- 口径一旦定义不可随意变更（变更需版本记录）
+```
+
+**验收标准（Ch10 联动）：**
+- [ ] 核心业务流程每个环节至少1个可统计指标
+- [ ] 看板页已列入 Ch5 页面清单
+- [ ] 指标口径已定义且无模糊表述（"多种"/"相关"不合格）
+- [ ] 验收阶段：看板数据与业务数据库实际数据交叉核对一致
 
 ---
 
@@ -621,6 +700,28 @@ RuoYi's Shiro auth locks accounts after 5 failed attempts for 10 minutes. Each f
 
 ## Multi-Subsystem PRD Patterns
 
+### Multi-Agent Parallel PRD Writing (large systems)
+
+When the PRD covers 10+ modules / 1,500+ function points, delegate writing to 4 parallel product-specialist agents, each covering 2-4 scenario groups. The master agent writes Ch1-4 and Ch10, then merges all parts.
+
+**Agent assignment template:**
+```
+Agent A: Scene group 1-2 (largest modules, ~600 points) → prd_part1.md
+Agent B: Scene group 3-4 (~400 points) → prd_part2.md
+Agent C: Scene group 5-6 (~460 points) → prd_part3.md
+Agent D: Scene group 7 + system modules (~460 points) → prd_part4.md
+```
+
+**Each agent writes:** Ch5 页面清单 + Ch6 功能点清单 + Ch7 数据模型 + Ch8 Mock数据 + Ch9 边界条件
+
+**Context must include:** Pre-extracted function point data (module→sub-module→count→type distribution), business rules (from source docx), scenario flow descriptions, output file path, exact PRD chapter format.
+
+**Pitfall:** Do NOT ask agents to read the Excel/PRD files. Pre-extract data and embed in context to avoid timeout. Each agent's goal should be 150-200 lines of focused output per module.
+
+**Merge:** Use `cat` to append parts to master, then append Ch10 acceptance criteria. Verify with `wc -l` and `grep -c '## Ch'`.
+
+For the full prototype generation workflow that follows PRD completion (iframe SPA, 4-agent parallel, CSS pitfalls), see `references/prototype-from-prd.md` → section "并行委派生成 iframe SPA 原型".
+
 For enterprise projects with multiple subsystems (e.g., 客户中心/会员中心/营销中心/数据中心), use these patterns.
 
 ### Organizational Context Mapping
@@ -632,7 +733,7 @@ For enterprise projects involving multiple business departments with independent
 3. **Document autonomy boundaries** — If departments have independent operational authority (e.g., each sets their own pricing/marketing rules), the PRD must explicitly state where unification is mandatory (e.g.,积分价值折现率) vs. where autonomy is preserved (e.g.,积分发行规则).
 4. **Capture existing systems per department** — Business units often have running legacy systems (小程序, 会员系统). The PRD must account for legacy system migration, not assume a greenfield build.
 
-**Pattern from real project (湖南高速服务区七大事业部):**
+**Pattern from real project (某省级交通集团服务区七大事业部):**
 
 ```markdown
 | 角色 | 描述 | 核心诉求 |
@@ -728,6 +829,11 @@ For multi-subsystem projects, maintain an API integration table:
 
 ---
 
+## Absorbed Skills
+
+### prd-enhancement (archived → `references/prd-enhancement.md`)
+Enhance Chinese PRD .docx files: add module-level interaction prototypes, editable business flowcharts (Pillow + draw.io), incremental revision aligning PRDs with policy documents via targeted table+text replacements.
+
 ## Reference Files
 
 This skill ships with the following support files:
@@ -737,20 +843,27 @@ This skill ships with the following support files:
 | `templates/commercial-prd-template.md` | **VERSION A — 商用交付版PRD模板**（9章+附录，含项目概述/非功能需求/接口规范/风险路线图/竞品对标，适合甲方/老板/合同附件） |
 | `templates/ai-prototype-prd-template.md` | **VERSION B — AI原型生成版PRD模板**（10章P0/P1/P2分级，含完整Mock数据/边界条件/验收门禁，直接翻译为HTML原型） |
 | `references/design-system-options.md` | **6大国产+2外部设计体系Token完整参考** — Ant Design/Element Plus/TDesign/Arco Design/Semi Design/NutUI/WeUI/Apple HIG，选体系后复制CSS变量块即可 |
-| `references/design-system-options.md` | **6大国产+2外部设计体系Token完整参考** — Ant Design/Element Plus/TDesign/Arco Design/Semi Design/NutUI/WeUI/Apple HIG，选体系后复制CSS变量块即可 |
+| — | **配套原型工作流**：`github.com/kangedy/prototype-king` — 8 Phase PRD→HTML原型流水线 + 自动化验收脚本（≥90%门禁）。先写PRD（本技能）→ 再转原型。 |
 | `references/enterprise-prd-template.md` | Template for multi-subsystem enterprise PRDs — module ID conventions, dependency chains, batch delivery planning, acceptance criteria. Best paired with the Multi-Subsystem PRD Patterns section above. |
-| `references/hunan-expressway-case.md` | Real-world case study: 湖南高速客户中心项目 (67KB, 1376-line PRD, 4 subsystems, 7 departments, 20TB data). Reference for organizational context mapping, legacy system migration, and client design document alignment. |
+| `references/hunan-expressway-case.md` | 虚构案例（社区电商平台PRD）演示多子系统PRD拆解模式：模块编号规范、分批交付策略、组织上下文映射与遗留系统迁移。 |
+| `references/checklist-to-prd-batch-generation.md` | **Checklist→PRD批量生成工作流** — 从甲方验收功能点清单(Excel)提取模块结构，批量生成一一映射的PRD补充章节。覆盖Excel偏移量导航、ILF/EI/EQ/EO→PRD内容映射、功能点分组→子模块详述的转换模式。Use when user says "输出第N批PRD补充" or "补全模块X的PRD" with a checklist Excel. |
 | `references/spa-reverse-engineering-prd.md` | Reverse-engineer a complete PRD from a deployed React/Vite SPA with no documentation. Covers JS bundle mining, Chinese string extraction, feature synthesis, and data model inference from minified source code. |
 | `references/ruoyi-reverse-engineering.md` | RuoYi(若依)框架系统的完整反向工程→PRD工作流：三Pass提取法（登录+菜单→表单字段→校验整合）、表单分步验证、账号锁定处理、子Agent外网限制解决 |
 | `references/prd-incremental-revision.md` | Technical walkthrough: incremental .docx revision for PRD updates — indexing, paragraph/table replacement, lxml structural insertion, reverse-order processing, and the "never recreate" anti-pattern with real pitfall transcript. |
 | `references/ruoyi-ssr-reverse-engineering.md` | **FULL post-login reverse-engineering** of a deployed RuoYi/若依 SSR admin system (Thymeleaf + Bootstrap + Shiro). Covers: Shiro login with session cookies + account lockout handling, HTML sidebar menu extraction, JS column definition scraping (`{field:'x', title:'y'}` in bootstrap-table), batch page analysis via execute_code (60+ pages in ~5s), and search form field extraction. Use when you HAVE login credentials and need complete field-level PRD. |
 | `references/ruoyi-reverse-engineering-prd.md` | **Pre-login probing only** — mining JS files for module paths, 302 route probing, data model inference from custom selectors. Use when you DON'T have login access and need to estimate system scope before asking for credentials. |
 | `references/ruoyi-extraction-patterns.md` | RuoYi SSR system field extraction patterns — menu, table columns, /add form fields, hidden fields, conditional display |
+| `references/enterprise-to-ai-prototype-conversion.md` | Convert a subsystem-organized enterprise PRD to a 10-chapter AI prototype PRD. Covers dual-generation and conversion workflows, per-chapter extraction rules, multi-wave sub-agent dispatch, and mock data generation. Use when user says "这个PRD是AI开发版的吗？" or "生成AI开发版PRD". |
 | `references/prd-incremental-revision.md` | Technical walkthrough: incremental .docx revision for PRD updates |
-| `references/business-process-analysis.md` | Derive structured business process flows from a completed PRD or scraped system: process landscape diagram, per-process deep dives, state machines, role-permission matrices, data dependency chains, and development priorities. Use when user asks "梳理业务流程" after PRD delivery. |
+| `references/business-process-analysis.md` | Derive structured business process flows from a completed PRD or scraped system |
+| `references/prototype-interactive-workflow.md` | **4波执行模型** — 从静态原型到全交互Demo：Mock数据550条→弹窗体系→CRUD逻辑(增删改查/分页/导出)→审批流转。含27项验证清单和"Toast模拟永不通过"陷阱。 |
+| `references/prd-enum-options-mapping.md` | **枚举字段选项值→ENTITY_COLUMNS映射规范** — PRD Ch7 enum options提取标准、getEntityFields写法、openFormModal select渲染分支、30+常见枚举值表、验证清单。 |
 | `references/prototype-from-prd.md` | Generate self-contained clickable HTML prototypes from PRD specs: design system setup, page structure patterns, modal/form conventions, factory functions for status pages, and common pitfalls. Use when user says "制作产品原型" or "出原型设计". |
+| `references/iframe-spa-prototype-integration.md` | **Iframe SPA原型集成** — 将新页面集成到基于iframe+base64的现有原型中，4点Patch法（centerSections/items/embeddedSources/buildEmbeddedDocument），验证10项清单。适用于验收冲刺场景中增量扩展原型而非重写。 |
+| `references/iframe-spa-multiagent-prototype.md` | **Iframe SPA多Agent并行原型生成** — 大规模原型（50+页）的标准工作流：母版壳+PAGE_MODULE映射+3+1Agent并行+hash路由+CSS pitfalls（overflow-x:auto裁切/currentPage跳过/映射hash缺失）。 |
 | `references/gap-analysis.md` | Gap analysis between 甲方 requirements checklist and existing system: three-state tagging (🟢/🟡/🔴), HTML report design spec (靛紫渐变+毛玻璃+折叠卡片), three-phase delivery plan template. Use when user says "对标甲方要求交付功能清单" or "看看少哪些". |
-| `references/prd-consolidation.md` | Merge multiple PRD versions/partial documents into one final unified PRD: multi-file ingestion, deduplication, structure normalization, version archiving. Use when user says "整合成一版本完整PRD" or "全部合并成一份". |
+| `references/prd-to-prototype-production.md` | **PRD→原型批量生产工作流** — PRD完成后从中生成完整测试原型的6阶段流程：提取页面清单→内容映射→初始SPA→并行填充→覆盖率验证→覆盖报告。50+页原型的标准生产流水线。 |
+| `references/prd-consolidation.md` | Merge multiple PRD versions/partial documents into one final unified PRD: multi-file ingestion, deduplication, structure normalization, version archiving. Use when user says "整合成一版本完整PRD" or "全部合并成一份". |\n| **`scripts/validate-prd.py`** | 📌 **PRD结构校验脚本** — 交付前自动扫描PRD文件，检查全部P0章节完整性（Ch1/2/5/6/7/8/10），输出评分报告。`python3 scripts/validate-prd.py <prd-file.md>` |\n| **`references/open-source-publishing.md`
 
 ---
 
@@ -765,19 +878,18 @@ This skill ships with the following support files:
 - **Cross-reference data consistency**: Every field in data model appears in mock data and renders on at least one page.
 - **Flag P0 gaps on draft**: When a PRD draft is missing a P0 chapter, call it out explicitly and require it before proceeding to prototype generation.
 - **Choose the right version**: Use VERSION A (commercial-prd-template) for client-facing delivery, use VERSION B (ai-prototype-prd-template) for direct AI prototype generation. They share the same 10-chapter core but differ in depth and structure.
-- **Run self-check before delivery**: PRD写完交付前，过一遍自查清单：
+- **Point to prototype-king for implementation**: When the user needs an HTML prototype after the PRD is done, reference the companion repo: `github.com/kangedy/prototype-king` (8-Phase workflow + verify script).
+- **Run self-check before delivery**: PRD写完交付前，先手动过自查清单，再跑自动校验：
+```bash
+python3 scripts/validate-prd.py output-prd.md
+# 通过条件：≥80% P0门禁通过率
+```
+自查清单：
 
 ```
 □ 所有P0章节完整（Ch1设计规范 / Ch2信息架构 / Ch5页面清单 / Ch6功能点清单 / Ch7数据模型 / Ch8 Mock数据 / Ch10验收标准）
-□ 每个枚举值已列全（没有被「多种」「各类」模糊带过的）
-□ 每个功能点有明确操作类型+触发方式+结果（Ch6格式）
-□ 每个字段有类型+必填+选项值+校验规则（Ch7格式）
-□ 状态有对应的色值映射（Ch3状态机）
-□ 搜索条件已逐字段列出控件类型+options
-□ Mock数据有正常/空/极限三组
-□ 每个页面回答了List/Detail/Action三问（Ch10）
-□ 同一实体跨页面数据一致
-□ 所有Button有handler（非死按钮）
+□ 每个枚举值已列全（没有被「多种」「各类」模糊带过的）\n□ 每个功能点有明确操作类型+触发方式+结果（Ch6格式）\n□ 每个字段有类型+必填+选项值+校验规则（Ch7格式）\n□ 状态有对应的色值映射（Ch3状态机）\n□ 搜索条件已逐字段列出控件类型+options\n□ Mock数据有正常/空/极限三组\n□ 每个页面回答了List/Detail/Action三问（Ch10）\n□ 同一实体跨页面数据一致\n□ 原型生成后PAGE_ENTITY_MAP覆盖所有含CRUD操作的页面（grep验证）
+□ 所有Button有handler（非死按钮）\n□ 每个有add/edit弹窗的页面在Ch5「弹窗清单」列标注了字段数和来源实体\n□ 每个弹窗字段在Ch7实体字段表中存在对应定义\n□ 如果从验收清单转换而来：已执行模块级覆盖验证（非关键词grep），在AI PRD中找到每个源三级模块的对应data-page
 ```
 
 ### DON'T (Avoid)
@@ -790,9 +902,95 @@ This skill ships with the following support files:
 - **Defend missing fields instead of fixing**: When the user says fields are missing, do NOT explain why. Immediately run a deeper extraction pass, specifically access add endpoints for every module. Proactively re-scan ALL remaining modules after any correction.
 - **Separate project files**: Keep all related deliverables in one directory. Do not scatter project files across the home directory, project folders, and WPS cloud drives.
 - **Trust sub-agent PRD merges**: When delegating PRD consolidation, sub-agents compress detailed field specs into summary sentences. Use terminal cat for mechanical file concatenation; reserve sub-agents for generating NEW integration material.
+- **🔴 Agent timeout when reading large Excel in delegated context**: When delegating PRD-writing agents that need to read a large Excel (1,000+ rows), the agent may time out (>600s) because it spends too long reading/parsing the file. **Fix**: pre-extract the function point data on the main agent's side and embed it directly in the delegation context as structured text (module hierarchy with point counts and type ratios). Give agents the pre-digested data — they don't need to read Excel themselves. This cut agent time from timeout to ~8min. Applies to any delegation task where the sub-agent would read a large data file.
+- **Large-scale parallel PRD pattern**: For 1,000+ function point PRDs: (1) Split by independent module groups, 3 agents parallel max (2) Provide pre-extracted function point data in context, not Excel paths; give type ratios per sub-module so agents can allocate properly (3) 2nd wave covers remaining modules (4) Merge all parts with `cat` — don't delegate merge (sub-agents compress detail) (5) Append common chapters (Ch1-4 design/IA/process/architecture, Ch10 acceptance) after merge. See `references/parallel-agent-prd-workflow.md`.
 - **Use read_file on large files**: read_file defaults to limit=500 lines. For large PRD files, it SILENTLY returns only the first 500 lines. First call wc -l to get actual line count. Use terminal cat for full reads.
-- **Write vague descriptions**: Vague phrases are P0 blockers for prototype generation. If the PRD enumerates incomplete option values, flag them and ask for the full list before proceeding to Chapters 6-7.
+- **Naive keyword matching for coverage verification**: When the user asks "检查验收清单所有功能点是否都有覆盖" against an AI PRD, grep-ing individual function point names against the PRD text produces ~0% false negatives. The source Excel lists each operation as a separate point (7 lines for one page's search), while AI PRD collapses them into a single Ch6 feature table row. Always use module-level mapping (source 三级模块 → AI PRD data-page), build an explicit mapping table, and explain the structural compression. See `references/enterprise-to-ai-prototype-conversion.md` section "Coverage Verification".
+- **Generating one version when user may need both**: When starting a new PRD from a checklist, do NOT default to one version. Ask in Phase 0c (Q⑦) whether the user needs VERSION A (commercial/enterprise), VERSION B (AI prototype), or BOTH. Generating one then having to convert costs ~2x more agent calls. If the user says "生成PRD" without specifying, clarify version before writing — or generate both in parallel using the dual-generation workflow in references/enterprise-to-ai-prototype-conversion.md.
+- **Generate prototype buttons without entity mapping** — Every page with data-action buttons (add/edit/delete) in the generated prototype needs PAGE_ENTITY_MAP + ENTITY_COLUMNS. Missing either = buttons render but do nothing. Verify with: grep for both in the generated prototype.
+- **Generate prototype buttons without entity mapping** — Every page with data-action buttons (add/edit/delete) in the generated prototype needs PAGE_ENTITY_MAP + ENTITY_COLUMNS. Missing either = buttons render but do nothing. Verify with: grep for both in the generated prototype.
+- **Generate prototype buttons without entity mapping** — Every page with data-action buttons (add/edit/delete) in the generated prototype needs PAGE_ENTITY_MAP + ENTITY_COLUMNS. Missing either = buttons render but do nothing. Verify with: grep for both in the generated prototype.
 - **Forget the system architecture context boundary**: Do NOT bloat Chapter 4 with microservice details, database schemas, or deployment configs. If the user provides this info, move it to a separate Technical Specification appendix.
+- **Publish without checking reference file consistency**: Before pushing a Hermes skill repo to GitHub, verify every file referenced in SKILL.md (`references/*.md`, `templates/*.md`, `scripts/*.py`) actually exists in the repo. Missing files break `codex skills install` and confuse users. Run: `grep -oP 'references/[a-zA-Z0-9_-]+\\.md' SKILL.md | sort -u > /tmp/refs.txt && ls references/ > /tmp/existing.txt && comm -23 /tmp/refs.txt /tmp/existing.txt`.
+- **Publish case studies with real project names**: Any reference to real clients, project names, version numbers, pricing, timelines, or organizational details must be fully anonymized before pushing to a public repo. Replace company names with generic labels (e.g. "某省级交通集团"), remove specific version numbers (V2.2→旧版), and strip identifiable data points (summarize "21TB" as "数TB", "¥39.9" as "基础档").
+  Use the publishing hygiene checklist in `references/open-source-publishing.md`
+
+### PRD实战陷阱（2026-07-23 某省级交通集团服务活动原型）
+
+**陷阱PRD-1：用户术语与PRD子系统不对应——PRD必须标注所属子系统**
+
+用户说"服务活动策划设计管理"，但这个模块属于**会员中心(HYZX)**子系统，不在营销中心PRD中。如果PRD不标注每个模块的子系统归属，用户和开发者都会找错文档。
+
+**预防：** Ch2信息架构和Ch5页面清单中，每个模块必须标注 `所属子系统：会员中心(HYZX)`。用缩进层级表达子系统→模块→页面的归属。
+
+```
+├── 👤 会员中心子系统 (HYZX)
+│   ├── 服务活动管理 (Activity Management) — 策划设计/上下架
+│   ├── 服务活动运营指标分析 (Activity Analytics)
+│   └── 服务策略中心 (Strategy Center)
+```
+
+**陷阱PRD-2：枚举值/选项值必须从子系统设计文档提取，不能凭业务直觉写**
+
+PRD中写"渠道：热线/自助/电子"看似合理，但系统实际触点中心定义了5个渠道（短信/APP推送/小程序/公众号/外呼）。凭空编造的枚举值会导致原型与系统设计脱节。
+
+**预防：** PRD中每个枚举字段必须标注**数据来源文档+章节号**：
+```markdown
+| 渠道 | enum | 短信/APP推送/小程序/公众号/外呼 | 来源：触点中心 §HYZX-STRAT-050~082 |
+```
+
+**陷阱PRD-3：客户标签树必须从标签画像模块完整提取**
+
+甲方原始需求中有完整的标签分类体系（基础信息/服务画像/渠道偏好/信用画像/通行特征/消费特征），PRD的目标群分析不能只列3-5个示例标签，必须完整提取。
+
+**预防：** PRD Ch6功能点清单的目标群圈定部分，必须列出完整的标签分类表，包含每个标签的覆盖人数。标签数据来源标注 `§5.5.3.4 客户标签处理`。
+
+**陷阱PRD-4：PRD必须定义状态机驱动的上下文操作**
+
+需求管理的操作按钮不能统一写"编辑/删除/详情"。PRD必须按状态定义差异化操作：
+```
+草稿状态：可编辑、可提交审批、可删除
+待审批状态：催办、撤回、详情（不可编辑）
+审批通过状态：详情、进入目标群分析（不可删除）
+已驳回状态：修改重提、查看驳回原因、删除
+```
+
+**预防：** Ch3业务流程中必须包含状态流转图 + 每个状态下的可用操作表。
+
+**陷阱PRD-5：分析维度必须标注数据来源，不可凭空定义**
+
+目标群分析的四维（基本信息/行为偏好/渠道偏好/消费偏好）和运营指标的三维（业务量/趋势/客户群），每个维度的子指标必须有对应的数据来源子系统。
+
+```markdown
+| 分析维度 | 子指标 | 数据来源 |
+|---------|--------|---------|
+| 目标群基本信息 | 群体数量、车型分布 | 客户关系数据(KHSJ) |
+| 行为偏好 | 通行路径TOP5、时段分布 | 路网通行行为数据(KHSJ) |
+| 渠道偏好 | 5渠道响应率 | 触点中心(HYZX) |
+| 消费偏好 | 消费层次、优惠敏感度 | 交易+优惠券系统(YXZX) |
+```
+
+**陷阱PRD-6：PRD必须包含模块间数据流向图**
+
+服务活动管理→策略中心→运营指标分析三个模块通过数据流串联，PRD必须画出：
+- 谁提供什么数据给谁
+- 谁消费谁的数据做分析
+- 分析结论反馈到哪个环节
+
+**案例：** 会员管理提供客户标签→目标群分析圈定客户群→策略中心引用客户群→运营指标分析消费策略数据→结论反馈需求管理。
+
+**陷阱PRD-7：增量优化PRD只写「新增流程」、不做核心业务流程闭环对照（2026-08-13 某省级交通集团覆盖检查实战）**
+
+**症状：** 基于覆盖检查做增量优化 PRD 时，Ch3 只写了本次要补的几条新增流程（如「改号换绑流程」「审批流程」），没有把系统**完整核心业务流程**拆解到环节级。后果：① 流程断点没被系统性识别 ② 每个优化项「为什么补」「补了哪个环节」说不清 ③ 无法判断改完后流程是否真的闭环。用户会直接问「有没有结合核心业务流程梳理功能/页面是否对应、是否闭环」。
+
+**预防——增量优化 PRD 的 Ch3 必须含「核心业务流程闭环对照」：**
+1. 列出系统**完整**核心业务流程（不是只列新增的）
+2. 每条流程拆解为环节链（`A → B → C → D`）
+3. 每个环节标注：对应页面(精确到菜单页/原型文件) + 对应功能点 + 闭环状态(✅闭环/❌断点/⚪不适用)
+4. 每个断点链接到本次优化项编号（`→P0-x / →P1-x`）
+5. 顶部给「闭环总览表」：流程 | 闭环状态 | 断点 | 本次补强
+
+这样 PRD 从「功能点补强清单」升级为「流程驱动的闭环 PRD」——AI 读 Ch3 能理解完整业务闭环，读 Ch5/6/7 知道具体怎么改。**判定粒度：流程→环节→页面→功能点，四层对应，断点必须落到具体优化项。**
 
 ---
 

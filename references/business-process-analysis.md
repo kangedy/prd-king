@@ -12,11 +12,28 @@ When the user asks "梳理业务流程" or "有哪些业务流程" after a PRD i
 
 ### 1. Process Landscape Diagram (全景图)
 
-ASCII art showing all processes and their relationships:
-```
-[上游流程] → [核心流程1] → [核心流程2] → ... → [最终流程]
-                                    ↓
-                              [支撑流程A/B/C...]
+使用 Mermaid 流程图展示所有流程及其关系：
+
+```mermaid
+flowchart TD
+    subgraph 上游
+        A[上游流程]
+    end
+    subgraph 核心链路
+        B[核心流程1] --> C[核心流程2]
+        C --> D[核心流程3]
+    end
+    subgraph 最终
+        D --> E[最终流程]
+    end
+    subgraph 支撑
+        F[支撑流程A]
+        G[支撑流程B]
+        H[支撑流程C]
+    end
+    F -.-> B
+    G -.-> C
+    H -.-> D
 ```
 
 ### 2. Per-Process Deep Dive
@@ -42,10 +59,24 @@ Step2. {action} → {output}
 
 ### 3. State Machine
 
-Document the complete lifecycle state transitions with status codes:
+Document the complete lifecycle state transitions using Mermaid 状态机图：
+
+```mermaid
+stateDiagram-v2
+    [*] --> 状态A
+    状态A --> 状态B: 触发条件
+    状态B --> 状态C: 触发条件
+    状态B --> 已驳回: 异常条件
+    已驳回 --> 状态A: 重新提交
+    状态C --> [*]
 ```
-状态A(code) → 状态B(code) → 状态C(code)
-```
+
+同时提供状态码对照表（适用于已上线的系统）：
+| 状态 | 状态码 | 描述 |
+|:----|:-----:|:-----|
+| 状态A | code_1 | 初始状态 |
+| 状态B | code_2 | 已处理 |
+| 状态C | code_3 | 已完结 |
 
 ### 4. Role-Permission Matrix
 
@@ -55,9 +86,22 @@ Document the complete lifecycle state transitions with status codes:
 
 ### 5. Key Data Dependency Chain
 
-Show how data flows between processes:
-```
-基础数据 → 业务录入 → 计算节点 → 最终产出
+Show how data flows between processes using Mermaid：
+
+```mermaid
+flowchart LR
+    A[基础数据] --> B[业务录入]
+    B --> C[计算节点]
+    C --> D[最终产出]
+    subgraph 数据源
+        A
+    end
+    subgraph 处理层
+        B --> C
+    end
+    subgraph 输出层
+        D
+    end
 ```
 
 ### 6. Development Priority

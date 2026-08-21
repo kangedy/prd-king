@@ -85,7 +85,7 @@ backdrop-filter: blur(16px);
 
 ## 示例输出
 
-参考本次会话产出的 `/home/kk/汽拆系统PRD/甲方需求差距分析报告.html`：
+参考示例项目产出的 `example/gap-analysis-report.html`：
 - 89项总需求，28已覆盖，14部分覆盖，47完全缺失
 - 模块1（小程序）35项全部缺失
 - 模块2（服务平台）54项混合状态

@@ -1,7 +1,7 @@
 # Enterprise Multi-Subsystem PRD Template
 
 > Reference template for large-scale Chinese enterprise projects with 3~4 subsystems.
-> Adapted from the 湖南高速客户中心项目 PRD — replace content with actual project details.
+> Adapted from the 某省级交通集团客户中心项目 PRD — replace content with actual project details.
 
 ---
 
@@ -47,7 +47,7 @@ Before writing the PRD for an enterprise multi-department project, **first map t
 | 4 | Identify existing membership/积分 systems | Critical: these determine the migration scope |
 | 5 | Map departments to PRD subsystems | Which department owns/uses which module |
 
-**Common pattern (from 湖南高速):**
+**Common pattern (from 某省级交通集团):**
 - Multiple departments with independent operational authority → 积分互通 must balance unification (统一价值折现率) vs. autonomy (各事业部自定发行规则)
 - Existing legacy systems (美美哒会员系统, 50万+ users) → PRD needs a dedicated migration module
 - Each department has distinct use cases → role definitions must cover all departments
