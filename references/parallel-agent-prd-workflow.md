@@ -94,7 +94,7 @@ cat prd_part4_xxx.md >> 完整PRD.md
 发给每个Agent的context必须包含：
 
 ```
-你是小乔，产品经理。编写XX项目PRD Part N。
+你是产品经理。编写XX项目PRD Part N。
 
 ## 功能点数据（直接使用，无需读Excel）
 [预提取的模块层次+功能点类型比例]

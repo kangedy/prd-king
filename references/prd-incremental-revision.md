@@ -6,7 +6,7 @@
 
 A real session transcript shows the cost of getting this wrong:
 
-**User**: "小乔，基于最新的XX管理办法文档，完善之前的PRD，重新输出一版。"
+**User**: "产品经理，基于最新的XX管理办法文档，完善之前的PRD，重新输出一版。"
 
 **Agent (wrong approach)**: Read both docs → generated fresh Document() → output 60KB with summary content.
 

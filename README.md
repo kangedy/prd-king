@@ -34,14 +34,19 @@
 
 ```
 prd-king/
-├── SKILL.md                              ← Hermes Agent 技能主文件（10章标准）
+├── SKILL.md                              ← 主文件（10章标准 + 完整工作流）
 ├── scripts/
-│   └── validate-prd.py                   ← PRD结构校验脚本（检查10章完整性）
+│   └── validate-prd.py                   ← PRD结构校验脚本（检查10章完整性 + P0门禁）
 ├── templates/
 │   ├── commercial-prd-template.md        ← VERSION A · 商用交付版（甲方/合同/开发排期）
 │   └── ai-prototype-prd-template.md      ← VERSION B · AI原型生成版（直接出HTML原型）
-├── references/                           ← 12个参考文件（反向工程/增量修订/竞品分析等）
-│   └── design-system-options.md          ← 8大设计体系Token完整参考
+├── references/                           ← 29个参考文件（反向工程/增量修订/多Agent并行/枚举映射等）
+│   ├── design-system-options.md          ← 8大设计体系Token完整参考
+│   ├── checklist-to-prd-batch-generation.md  ← 验收清单→PRD批量生成
+│   ├── enterprise-to-ai-prototype-conversion.md ← 企业PRD→AI原型版转换
+│   └── ...（详见 SKILL.md 参考文件表）
+├── examples/
+│   └── super-todo-list/PRD.md            ← 完整10章PRD示例
 ├── posts/                                ← 推广帖草稿
 ├── README.md
 ├── LICENSE                               ← MIT
@@ -59,7 +64,7 @@ prd-king/
 
 **使用流程：**
 ```
-prd-king 写PRD → prototype-king 转原型 → 交付验收
+prd-king 写PRD → prototype-king 转原型 → verify-prototype.py 交付验收
 ```
 
 ---
@@ -146,14 +151,15 @@ cp templates/commercial-prd-template.md ./docs/prd-template.md
 |----|------|--------|-----------|
 | Ch1 | 设计规范 | 🔴 P0 | Ant Design/Element Plus/TDesign... Token即CSS |
 | Ch2 | 信息架构 | 🔴 P0 | 导航树 + 角色-菜单映射 |
-| Ch3 | 业务流程 | 🟡 P1 | 页面间跳转，标注[从XX页→弹窗XX→到XX页] |
-| Ch4 | 系统架构上下文 | 🟢 P2 | 只写影响原型设计的部分（权限/数据流向） |
-| Ch5 | 页面清单 | 🔴 P0 | 每页有唯一 data-page + 布局类型 |
+| Ch3 | 业务流程 | 🟡 P1 | 页面间跳转 + 状态机，标注[从XX页→弹窗XX→到XX页] |
+| Ch4 | 系统架构上下文 | 🟢 P2 | 只写影响原型设计的部分（权限/数据流向/接口格式） |
+| Ch5 | 页面清单 | 🔴 P0 | 每页有唯一 data-page + 布局类型 + 弹窗清单 |
 | Ch6 | 功能点清单 | 🔴 P0 | 逐按钮/逐操作，操作类型+触发方式+结果 |
 | Ch7 | 数据模型 | 🔴 P0 | 逐字段含类型/必填/选项值/控件/校验 |
 | Ch8 | Mock数据 | 🔴 P0 | 正常(≥5条)+空态+极限三组 |
 | Ch9 | 边界条件 | 🟡 P1 | 权限/校验/网络/精度/溢出处理 |
-| Ch10 | 验收标准 | 🔴 P0 | 每模块List/Detail/Action三问 |
+| Ch10 | 验收标准 | 🔴 P0 | 每模块List/Detail/Action三问 + G1-G10门禁 |
+| Ch11 | 运营指标与看板 | 🟡 P1 | 核心指标口径 + 看板页规划（可运营性铁律） |
 
 ---
 
@@ -197,6 +203,16 @@ PRD质量自检表 → ✅ 全部通过 → 交付
 
 ---
 
+## ✅ 用脚本自动校验PRD
+
+```bash
+python3 scripts/validate-prd.py my-prd.md
+# 通过标准：≥80% P0门禁通过率
+# 检查：Ch1/2/5/6/7/8/10 完整性 + P1/P2 建议项 + 枚举列全度
+```
+
+---
+
 ## 📋 PRD质量自检表
 
 提交前逐项检查：
@@ -204,14 +220,15 @@ PRD质量自检表 → ✅ 全部通过 → 交付
 ```
 □ [P0] Ch1 设计Token已定义（主色/背景/侧栏/字号/圆角）
 □ [P0] Ch2 树形导航 + 角色-菜单映射 + 默认落地页
-□ [P1] Ch3 P0核心流程已标注页面跳转关系
+□ [P1] Ch3 P0核心流程已标注页面跳转关系 + 状态机
 □ [P2] Ch4 仅写影响原型的部分（权限/数据流向/接口格式）
-□ [P0] Ch5 每页有唯一 data-page + 布局类型 + 依赖实体
+□ [P0] Ch5 每页有唯一 data-page + 布局类型 + 依赖实体 + 弹窗清单
 □ [P0] Ch6 功能点细化到按钮级，无「多种」「各类」模糊词
 □ [P0] Ch7 字段含类型/必填/选项值/展示控件/校验规则
 □ [P0] Ch8 正常(≥5条) + 空态 + 极限三组Mock数据
 □ [P1] Ch9 边界条件覆盖权限/校验/网络/精度/溢出
 □ [P0] Ch10 每模块List/Detail/Action三问已答
+□ [P1] Ch11 核心流程每环节≥1个可统计指标 + 看板页已列入页面清单
 □ 所有枚举值已列全
 □ 搜索条件已逐字段列出控件类型+options
 □ 状态有色值映射
@@ -227,7 +244,7 @@ PRD质量自检表 → ✅ 全部通过 → 交付
 ### 主要贡献方向
 
 - 增加设计体系（如华为OpenTiny、字节Semi已加）
-- 更多实际项目PRD样例（`examples/` 目录待建）
+- 更多实际项目PRD样例（`examples/` 目录）
 - 非功能需求SLA参考值扩展
 - 对接更多AI原型生成工具
 
@@ -243,4 +260,3 @@ MIT License。可自由使用、修改、商用。
 
 - **Nous Research** — Hermes Agent 技能系统
 - **Ant Design / Element Plus / TDesign / Arco Design / Semi Design / NutUI** — 优秀的设计体系
-- **天机阁团队** — 小乔/貂蝉/大乔/孔明，实战反馈持续迭代
